@@ -37,6 +37,8 @@ for i in range(num_electorates):
     polling_place_names_votes_table = []#Names of polling places in the votes table on page
     polling_place_names_address_table = []#Names of polling places in the table containing polling place info including addresses
     polling_place_addresses = []#Polling place addresses
+    latitudes = [] #Latitudes of polling places
+    longitudes = [] #Longitudes of polling places
 
     #Tags in tables
     #tcpbppPP - name of polling place (votes table)
@@ -85,13 +87,46 @@ for i in range(num_electorates):
             polling_place_names_address_table.append(name)
 
     #Scrape the polling place addresses
+    #From the address, do a Google Maps search for it's coordinates
+    #Here's an API key that is needed
+    my_key = 'AIzaSyBbzl1MucXnp2Po5jpGizeaFZSsSmwfHho'
     polling_place_address = soup.find_all('td', attrs = {'headers': 'ppAdd'})
     for row in polling_place_address:
         row = str(row)
         a = row.find('>')
         b = row.find('</')
-        address = row[a+1:b]
-        polling_place_addresses.append(address)   
+        address_booth = row[a+1:b]
+        polling_place_addresses.append(address_booth)
+        #From address we will extract components to use in Google Maps
+        #search to extract coordinates
+        #Split the address into the placename and street details components
+        address_booth = address_booth.split(', ')
+        place_name = address_booth[0]
+        street_details = address_booth[1]#Includes locality, state, postcode
+        # Following commands sourced from
+        # 'https://towardsdatascience.com/pythons-geocoding-convert-a-list-of-addresses-into-a-map-f522ef513fd6'
+        base_url= "https://maps.googleapis.com/maps/api/geocode/json?"
+        # set up your search parameters - address and API key
+        parameters = {"address": str(place_name), "key": my_key}
+        r = requests.get(f"{base_url}{urllib.parse.urlencode(parameters)}")
+        data = json.loads(r.content)
+        try:
+            geolocation = data.get("results")[0].get("geometry").get("location")
+            latitude = geolocation['lat']
+            longitude = geolocation['lng']
+        except:
+            parameters = {"address": str(street_details), "key": my_key}
+            r = requests.get(f"{base_url}{urllib.parse.urlencode(parameters)}")
+            data = json.loads(r.content)
+            try:
+                geolocation = data.get("results")[0].get("geometry").get("location")
+                latitude = geolocation['lat']
+                longitude = geolocation['lng']
+            except:
+                latitude = 'Cannot find on Google'
+                longitude = 'Cannot find on Google'
+        latitudes.append(latitude)
+        longitudes.append(longitude)
 
     #Scrape the two candidate preferred percentage vote for the first
     tcp_first_candidate = soup.find_all('td', attrs = {'headers': 'tcpbppC1P'})
@@ -136,6 +171,8 @@ for i in range(num_electorates):
     table_second_votes = []
     table_polling_place_names = []
     table_polling_place_addresses = []
+    table_latitudes = []
+    table_longitudes = []
 
     #Find the number of polling places with addresses and the number of booths (polling places plus postal, hospital votes etc.)
     num_polling_places = len(polling_places_address_table)
@@ -151,6 +188,8 @@ for i in range(num_electorates):
                 table_first_votes.append(votes_first[j])
                 table_second_votes.append(votes_second[j])
                 table_polling_place_addresses.append(polling_place_addresses[i])
+                table_latitudes.append(latitudes[i])
+                table_longitudes.append(longitudes[i])
 
     first_candidate_name = main_candidates[0]
     second_candidate_name = main_candidates[1]
