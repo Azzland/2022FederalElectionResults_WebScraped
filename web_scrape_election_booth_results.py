@@ -89,7 +89,7 @@ for i in range(num_electorates):
     #Scrape the polling place addresses
     #From the address, do a Google Maps search for it's coordinates
     #Here's an API key that is needed
-    my_key = 'AIzaSyBbzl1MucXnp2Po5jpGizeaFZSsSmwfHho'
+    my_key = [your Google Maps API key]
     polling_place_address = soup.find_all('td', attrs = {'headers': 'ppAdd'})
     for row in polling_place_address:
         row = str(row)
