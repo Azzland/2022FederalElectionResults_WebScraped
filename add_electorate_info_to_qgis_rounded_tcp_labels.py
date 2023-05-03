@@ -140,8 +140,6 @@ def add_electorate(electorate):
         #Refresh
         suburbs_in_seat_lyr.triggerRepaint()
 
-        columns_in_df = booth_results.columns
-        label_columns = [str(columns_in_df[6]), str(columns_in_df[7])]
 
         i = 0
         for party in parties_in_df:
@@ -150,6 +148,7 @@ def add_electorate(electorate):
             party_lyr = processing.run("native:extractbyattribute", {'INPUT':booth_results_shp,'FIELD':'Winning_Party','OPERATOR':0,
                                                                      'VALUE':party,'OUTPUT':output_lyr})
             winning_booths_lyr = QgsVectorLayer(output_lyr, str(party), "ogr")
+            winning_booths_lyr.setOpacity(0)
             registry.addMapLayers([winning_booths_lyr])
 
             winning_booths_lyr.startEditing()
@@ -192,7 +191,7 @@ def add_electorate(electorate):
             format = QgsTextFormat()
             format.setFont(QFont('Open Sans', 9))
             format.setColor(QColor(label_color))
-            format.setNamedStyle('regular')
+            format.setNamedStyle('Regular')
             buffer = QgsTextBufferSettings()
             buffer.setEnabled(True)
             buffer.setSize(buffer_size)
@@ -207,7 +206,7 @@ def add_electorate(electorate):
             winning_booths_lyr.triggerRepaint()
 
 
-add_electorate("Solomon")
+add_electorate("Canberra")
                 
 """
 Double-click on the history item or paste the command below to re-run the algorithm
